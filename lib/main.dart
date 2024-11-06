@@ -251,18 +251,23 @@ class _BikeDetailsPageState extends State<BikeDetailsPage> {
   }
 
   Future<void> fetchBikeDetails() async {
-    // Open the database
-    final database = await openDatabase(
-      join(await getDatabasesPath(), 'garage_inventory.db'),
-    );
+    try {
+      // Open the database
+      final database = await openDatabase(
+        join(await getDatabasesPath(), 'garage_inventory.db'),
+      );
 
-    // Fetch all data from the bike_details table
-    final List<Map<String, dynamic>> bikeMaps = await database.query('bike_details');
+      // Fetch all data from the bike_details table
+      final List<Map<String, dynamic>> bikeMaps = await database.query('bike_details');
 
-    // Update the state with the fetched data
-    setState(() {
-      bikeDetails = bikeMaps;
-    });
+      // Update the state with the fetched data
+      setState(() {
+        bikeDetails = bikeMaps;
+      });
+    } catch (e) {
+      // Log or display the error for debugging
+      print('Error fetching bike details: $e');
+    }
   }
 
   @override
@@ -282,13 +287,23 @@ class _BikeDetailsPageState extends State<BikeDetailsPage> {
           itemBuilder: (context, index) {
             return ListTile(
               title: Text(
-                'Bike ID: ${bikeDetails[index]['bike_id']}',
+                bikeDetails[index]['bike_name'],
                 style: TextStyle(color: Colors.red[500]),
               ),
-              subtitle: Text(
-                'Bike Name: ${bikeDetails[index]['bike_name']}',
-                style: TextStyle(color: Colors.white),
-              ),
+              onTap: () {
+                // Debugging: Print the selected bike ID to ensure onTap is working
+                print('Tapped on bike ID: ${bikeDetails[index]['bike_id']}');
+
+                // Navigate to the SparePartsPage and pass the bike_id
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                    builder: (context) => SparePartsPage(
+                      bikeId: bikeDetails[index]['bike_id'],
+                    ),
+                  ),
+                );
+              },
             );
           },
         ),
@@ -515,7 +530,9 @@ class _ByBikePageState extends State<ByBikePage> {
       drawer: AppDrawer(),
       body: Container(
         color: Colors.grey[800],
-        child: ListView.builder(
+        child: _bikes.isEmpty
+            ? Center(child: CircularProgressIndicator())
+            : ListView.builder(
           itemCount: _bikes.length,
           itemBuilder: (context, index) {
             return ListTile(
@@ -523,6 +540,17 @@ class _ByBikePageState extends State<ByBikePage> {
                 _bikes[index]['bike_name'],
                 style: TextStyle(color: Colors.red[500], fontFamily: 'Itim'),
               ),
+              onTap: () {
+                // Navigate to SparePartsPage with the bike ID
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                    builder: (context) => SparePartsPage(
+                      bikeId: _bikes[index]['bike_id'],
+                    ),
+                  ),
+                );
+              },
             );
           },
         ),
@@ -532,6 +560,63 @@ class _ByBikePageState extends State<ByBikePage> {
         child: Icon(Icons.add),
         backgroundColor: Colors.black,
         foregroundColor: Colors.red[500],
+      ),
+    );
+  }
+}
+class SparePartsPage extends StatelessWidget {
+  final int bikeId;
+  final DatabaseHelper _dbHelper = DatabaseHelper();
+
+  SparePartsPage({required this.bikeId});
+
+  Future<List<Map<String, dynamic>>> _fetchSpareParts() async {
+    // Fetch spare parts related to the given bike ID
+    return await _dbHelper.getSparePartsByBikeId(bikeId);
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      appBar: AppBar(
+        title: Text('Bike Spare Parts List', style: TextStyle(fontFamily: 'Itim')),
+      ),
+      body: Container(
+        color: Colors.grey[800], // Set background color to grey[800]
+        child: FutureBuilder<List<Map<String, dynamic>>>(
+          future: _fetchSpareParts(),
+          builder: (context, snapshot) {
+            if (!snapshot.hasData) {
+              return Center(child: CircularProgressIndicator());
+            }
+
+            final spareParts = snapshot.data!;
+            if (spareParts.isEmpty) {
+              return Center(
+                child: Text(
+                  'No spare parts found for this bike.',
+                  style: TextStyle(color: Colors.white),
+                ),
+              );
+            }
+
+            return ListView.builder(
+              itemCount: spareParts.length,
+              itemBuilder: (context, index) {
+                return ListTile(
+                  title: Text(
+                    spareParts[index]['spare_part_name'],
+                    style: TextStyle(color: Colors.red[500], fontFamily: 'Itim'),
+                  ),
+                  subtitle: Text(
+                    'Price: ${spareParts[index]['spare_part_price']} | Quantity: ${spareParts[index]['spare_part_quantity']}',
+                    style: TextStyle(color: Colors.white),
+                  ),
+                );
+              },
+            );
+          },
+        ),
       ),
     );
   }
@@ -1062,3 +1147,4 @@ class _AddSparePartFormState extends State<AddSparePartForm> {
     );
   }
 }
+//okq

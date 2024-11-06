@@ -44,4 +44,15 @@ class DatabaseHelper {
       conflictAlgorithm: ConflictAlgorithm.replace,
     );
   }
+  Future<List<Map<String, dynamic>>> getSparePartsByBikeId(int bikeId) async {
+    final database = await openDatabase(
+      join(await getDatabasesPath(), 'garage_inventory.db'),
+    );
+
+    return await database.query(
+      'spare_part_details',
+      where: 'bike_id = ?',
+      whereArgs: [bikeId],
+    );
+  }
 }
