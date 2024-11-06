@@ -20,6 +20,12 @@ class GarageInventoryApp extends StatelessWidget {
         appBarTheme: AppBarTheme(
           backgroundColor: Colors.black,
           foregroundColor: Colors.red[500], // Title color set to red
+          titleTextStyle: TextStyle(
+            fontFamily: 'Itim',
+            fontSize: 28, // Increased font size for AppBar titles
+            fontWeight: FontWeight.bold,
+            color: Colors.red[500], // Ensures the title color is red
+          ),
         ),
         textTheme: TextTheme(
           bodyLarge: TextStyle(fontFamily: 'Itim'),
@@ -44,7 +50,7 @@ class HomePage extends StatelessWidget {
         child: Center(
           child: Container(
             width: 300, // Width of the container
-            height: 350, // Adjusted height to fit the new button
+            height: 250, // Adjusted height since we removed the last button
             padding: EdgeInsets.all(16), // Padding inside the container
             decoration: BoxDecoration(
               color: Colors.red, // Background color of the container
@@ -66,7 +72,7 @@ class HomePage extends StatelessWidget {
                   '-> Search inventory by',
                   style: TextStyle(
                     color: Colors.black,
-                    fontSize: 20,
+                    fontSize: 24, // Increased font size
                     fontWeight: FontWeight.bold,
                     fontFamily: 'Itim',
                   ),
@@ -97,7 +103,10 @@ class HomePage extends StatelessWidget {
                         child: Center( // Center text vertically
                           child: Text(
                             'Bike',
-                            style: TextStyle(color: Colors.red[500]),
+                            style: TextStyle(
+                              color: Colors.red[500],
+                              fontSize: 20, // Increased font size
+                            ),
                           ),
                         ),
                       ),
@@ -109,7 +118,7 @@ class HomePage extends StatelessWidget {
                   onPressed: () {
                     Navigator.push(
                       context,
-                      MaterialPageRoute(builder: (context) =>BySparePartPage()),
+                      MaterialPageRoute(builder: (context) => BySparePartPage()),
                     );
                   },
                   style: ElevatedButton.styleFrom(
@@ -129,39 +138,10 @@ class HomePage extends StatelessWidget {
                         child: Center( // Center text vertically
                           child: Text(
                             'Spare Parts',
-                            style: TextStyle(color: Colors.red[500]),
-                          ),
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-                SizedBox(height: 20), // Space between buttons
-                ElevatedButton(
-                  onPressed: () {
-                    Navigator.push(
-                      context,
-                      MaterialPageRoute(builder: (context) => ShowDetailsPage()),
-                    );
-                  },
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: Colors.black, // Button color
-                    foregroundColor: Colors.red[500], // Text and icon color
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(10),
-                    ),
-                    padding: EdgeInsets.symmetric(vertical: 16, horizontal: 24),
-                  ),
-                  child: Row(
-                    mainAxisAlignment: MainAxisAlignment.start, // Align items to start
-                    children: [
-                      Icon(Icons.info, color: Colors.red[500]),
-                      SizedBox(width: 8), // Space between icon and text
-                      Expanded( // Allow text to take remaining space
-                        child: Center( // Center text vertically
-                          child: Text(
-                            'Show All Table Data',
-                            style: TextStyle(color: Colors.red[500]),
+                            style: TextStyle(
+                              color: Colors.red[500],
+                              fontSize: 20, // Increased font size
+                            ),
                           ),
                         ),
                       ),
@@ -285,25 +265,35 @@ class _BikeDetailsPageState extends State<BikeDetailsPage> {
             : ListView.builder(
           itemCount: bikeDetails.length,
           itemBuilder: (context, index) {
-            return ListTile(
-              title: Text(
-                bikeDetails[index]['bike_name'],
-                style: TextStyle(color: Colors.red[500]),
-              ),
-              onTap: () {
-                // Debugging: Print the selected bike ID to ensure onTap is working
-                print('Tapped on bike ID: ${bikeDetails[index]['bike_id']}');
-
-                // Navigate to the SparePartsPage and pass the bike_id
-                Navigator.push(
-                  context,
-                  MaterialPageRoute(
-                    builder: (context) => SparePartsPage(
-                      bikeId: bikeDetails[index]['bike_id'],
-                    ),
+            return Container(
+              color: Colors.black, // Set the background color to black
+              child: ListTile(
+                title: Text(
+                  bikeDetails[index]['bike_name'],
+                  style: TextStyle(
+                    color: Colors.red[500],
+                    fontSize: 22, // Increased font size
                   ),
-                );
-              },
+                ),
+                trailing: Icon(
+                  Icons.edit, // Edit icon
+                  color: Colors.blue, // Change the icon color to blue
+                ),
+                // onTap: () {
+                //   // Debugging: Print the selected bike ID to ensure onTap is working
+                //   print('Tapped on bike ID: ${bikeDetails[index]['bike_id']}');
+                //
+                //   // Navigate to the SparePartsPage and pass the bike_id
+                //   Navigator.push(
+                //     context,
+                //     MaterialPageRoute(
+                //       builder: (context) => SparePartsPage(
+                //         bikeId: bikeDetails[index]['bike_id'],
+                //       ),
+                //     ),
+                //   );
+                // },
+              ),
             );
           },
         ),
@@ -433,6 +423,17 @@ class AppDrawer extends StatelessWidget {
                   );
                 },
               ),
+              ListTile(
+                leading: Icon(Icons.info, color: Colors.red[500]),
+                title: Text('Show All Table Data', style: TextStyle(color: Colors.red[500])),
+                onTap: () {
+                  // Navigate to Show All Table Data Page
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(builder: (context) => ShowDetailsPage()),
+                  );
+                },
+              ),
             ],
           ),
         ),
@@ -477,20 +478,44 @@ class ByBikePage extends StatefulWidget {
 class _ByBikePageState extends State<ByBikePage> {
   final DatabaseHelper _dbHelper = DatabaseHelper();
   List<Map<String, dynamic>> _bikes = [];
-
+  List<Map<String, dynamic>> _filteredBikes = [];
+  bool _isSearching = false;
+  TextEditingController _searchController = TextEditingController();
+  var color = Colors.grey[800];
   @override
   void initState() {
     super.initState();
     _fetchBikes();
+    _searchController.addListener(_onSearchChanged);
   }
 
   void _fetchBikes() async {
     final bikes = await _dbHelper.getBikes();
     setState(() {
       _bikes = bikes;
+      _filteredBikes = bikes;
     });
   }
 
+  void _onSearchChanged() {
+    setState(() {
+      _filteredBikes = _bikes
+          .where((bike) => bike['bike_name']
+          .toLowerCase()
+          .contains(_searchController.text.toLowerCase()))
+          .toList();
+    });
+  }
+
+  void _clearSearch() {
+    _searchController.clear();
+    setState(() {
+      _isSearching = false;
+      _filteredBikes = _bikes;
+    });
+  }
+
+  // Show Add Bike Form
   void _showAddBikeForm() {
     final TextEditingController bikeNameController = TextEditingController();
 
@@ -521,36 +546,153 @@ class _ByBikePageState extends State<ByBikePage> {
     );
   }
 
+  // Edit bike functionality
+  void _showEditBikeForm(int bikeId, String currentName) {
+    final TextEditingController bikeNameController = TextEditingController(text: currentName);
+
+    showDialog(
+      context: this.context,
+      builder: (context) {
+        return AlertDialog(
+          title: Text('Edit Bike'),
+          content: TextField(
+            controller: bikeNameController,
+            decoration: InputDecoration(hintText: 'Enter new bike name'),
+          ),
+          actions: [
+            TextButton(
+              onPressed: () async {
+                String bikeName = bikeNameController.text;
+                if (bikeName.isNotEmpty) {
+                  await _dbHelper.updateBike(bikeId, bikeName);  // Update the bike in the DB
+                  _fetchBikes(); // Refresh the list
+                }
+                Navigator.pop(context); // Close the dialog
+              },
+              child: Text('Save'),
+            ),
+          ],
+        );
+      },
+    );
+  }
+
+  // Delete bike functionality
+  void _deleteBike(int bikeId) {
+    showDialog(
+      context: this.context,
+      builder: (context) {
+        return AlertDialog(
+          title: Text('Delete Bike'),
+          content: Text('Are you sure you want to delete this bike?'),
+          actions: [
+            TextButton(
+              onPressed: () async {
+                await _dbHelper.deleteBike(bikeId); // Delete the bike from the DB
+                _fetchBikes(); // Refresh the list
+                Navigator.pop(context); // Close the dialog
+              },
+              child: Text('Yes'),
+            ),
+            TextButton(
+              onPressed: () {
+                Navigator.pop(context); // Close the dialog without doing anything
+              },
+              child: Text('No'),
+            ),
+          ],
+        );
+      },
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Text('Bike List', style: TextStyle(fontFamily: 'Itim')),
+        title: _isSearching
+            ? TextField(
+          controller: _searchController,
+          decoration: InputDecoration(
+            hintText: 'Search Bikes',
+            hintStyle: TextStyle(color: Colors.red[500]),
+            border: InputBorder.none,
+          ),
+          style: TextStyle(color: Colors.red[500]),
+        )
+            : Text('Bike List', style: TextStyle(fontFamily: 'Itim')),
+        actions: [
+          IconButton(
+            icon: Icon(_isSearching ? Icons.clear : Icons.search, color: Colors.red[500]),
+            onPressed: () {
+              setState(() {
+                if (_isSearching) {
+                  _clearSearch();
+                } else {
+                  _isSearching = true;
+                }
+              });
+
+            },
+          ),
+        ],
       ),
       drawer: AppDrawer(),
       body: Container(
         color: Colors.grey[800],
-        child: _bikes.isEmpty
+        child: _filteredBikes.isEmpty
             ? Center(child: CircularProgressIndicator())
             : ListView.builder(
-          itemCount: _bikes.length,
+          itemCount: _filteredBikes.length,
           itemBuilder: (context, index) {
-            return ListTile(
-              title: Text(
-                _bikes[index]['bike_name'],
-                style: TextStyle(color: Colors.red[500], fontFamily: 'Itim'),
+            return Container(
+
+              // Background color of each row
+              decoration: BoxDecoration(
+                color: Colors.black26,
+                border: Border(bottom: BorderSide(color: Colors.grey[800]!, width: 1)),
               ),
-              onTap: () {
-                // Navigate to SparePartsPage with the bike ID
-                Navigator.push(
-                  context,
-                  MaterialPageRoute(
-                    builder: (context) => SparePartsPage(
-                      bikeId: _bikes[index]['bike_id'],
-                    ),
+
+              child: ListTile(
+                title: Text(
+                  _filteredBikes[index]['bike_name'],
+                  style: TextStyle(
+                    color: Colors.red[500],
+                    fontFamily: 'Itim',
+                    fontSize: 22, // Increased font size
                   ),
-                );
-              },
+                ),
+                trailing: Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    // Edit button with blue color
+                    IconButton(
+                      icon: Icon(Icons.edit, color: Colors.blue),
+                      onPressed: () {
+                        _showEditBikeForm(_filteredBikes[index]['bike_id'], _filteredBikes[index]['bike_name']);
+                      },
+                    ),
+                    // Delete button
+                    IconButton(
+                      icon: Icon(Icons.delete, color: Colors.red[500]),
+                      onPressed: () {
+                        _deleteBike(_filteredBikes[index]['bike_id']);
+                      },
+                    ),
+                  ],
+                ),
+                onTap: () {
+                  // Navigate to SparePartsPage with the bike ID
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder: (context) => SparePartsPage(
+                        bikeId: _filteredBikes[index]['bike_id'],
+                      ),
+                    ),
+                  );
+                },
+              ),
             );
           },
         ),
@@ -564,56 +706,104 @@ class _ByBikePageState extends State<ByBikePage> {
     );
   }
 }
-class SparePartsPage extends StatelessWidget {
+class SparePartsPage extends StatefulWidget {
   final int bikeId;
-  final DatabaseHelper _dbHelper = DatabaseHelper();
-
   SparePartsPage({required this.bikeId});
 
-  Future<List<Map<String, dynamic>>> _fetchSpareParts() async {
-    // Fetch spare parts related to the given bike ID
-    return await _dbHelper.getSparePartsByBikeId(bikeId);
+  @override
+  _SparePartsPageState createState() => _SparePartsPageState();
+}
+class _SparePartsPageState extends State<SparePartsPage> {
+  final DatabaseHelper _dbHelper = DatabaseHelper();
+  List<Map<String, dynamic>> _spareParts = [];
+  List<Map<String, dynamic>> _filteredSpareParts = [];
+  bool _isSearching = false;
+  TextEditingController _searchController = TextEditingController();
+
+  @override
+  void initState() {
+    super.initState();
+    _fetchSpareParts();
+    _searchController.addListener(_onSearchChanged);
+  }
+
+  Future<void> _fetchSpareParts() async {
+    final parts = await _dbHelper.getSparePartsByBikeId(widget.bikeId);
+    setState(() {
+      _spareParts = parts;
+      _filteredSpareParts = parts;
+    });
+  }
+
+  void _onSearchChanged() {
+    setState(() {
+      _filteredSpareParts = _spareParts
+          .where((part) => part['spare_part_name']
+          .toLowerCase()
+          .contains(_searchController.text.toLowerCase()))
+          .toList();
+    });
+  }
+
+  void _clearSearch() {
+    _searchController.clear();
+    setState(() {
+      _isSearching = false;
+      _filteredSpareParts = _spareParts;
+    });
   }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Text('Bike Spare Parts List', style: TextStyle(fontFamily: 'Itim')),
+        title: _isSearching
+            ? TextField(
+          controller: _searchController,
+          decoration: InputDecoration(
+            hintText: 'Search Spare Parts',
+            hintStyle: TextStyle(color: Colors.red[500]),
+            border: InputBorder.none,
+          ),
+          style: TextStyle(color: Colors.red[500]),
+        )
+            : Text('Bike Spare Parts List', style: TextStyle(fontFamily: 'Itim')),
+        actions: [
+          IconButton(
+            icon: Icon(_isSearching ? Icons.clear : Icons.search, color: Colors.red[500]),
+            onPressed: () {
+              setState(() {
+                if (_isSearching) {
+                  _clearSearch();
+                } else {
+                  _isSearching = true;
+                }
+              });
+            },
+          ),
+        ],
       ),
       body: Container(
-        color: Colors.grey[800], // Set background color to grey[800]
-        child: FutureBuilder<List<Map<String, dynamic>>>(
-          future: _fetchSpareParts(),
-          builder: (context, snapshot) {
-            if (!snapshot.hasData) {
-              return Center(child: CircularProgressIndicator());
-            }
-
-            final spareParts = snapshot.data!;
-            if (spareParts.isEmpty) {
-              return Center(
-                child: Text(
-                  'No spare parts found for this bike.',
-                  style: TextStyle(color: Colors.white),
-                ),
-              );
-            }
-
-            return ListView.builder(
-              itemCount: spareParts.length,
-              itemBuilder: (context, index) {
-                return ListTile(
-                  title: Text(
-                    spareParts[index]['spare_part_name'],
-                    style: TextStyle(color: Colors.red[500], fontFamily: 'Itim'),
-                  ),
-                  subtitle: Text(
-                    'Price: ${spareParts[index]['spare_part_price']} | Quantity: ${spareParts[index]['spare_part_quantity']}',
-                    style: TextStyle(color: Colors.white),
-                  ),
-                );
-              },
+        color: Colors.grey[800],
+        child: _filteredSpareParts.isEmpty
+            ? Center(
+          child: Text(
+            'No spare parts found for this bike.',
+            style: TextStyle(color: Colors.white),
+          ),
+        )
+            : ListView.builder(
+          itemCount: _filteredSpareParts.length,
+          itemBuilder: (context, index) {
+            return ListTile(
+              title: Text(
+                _filteredSpareParts[index]['spare_part_name'],
+                style: TextStyle(color: Colors.red[500], fontFamily: 'Itim'),
+              ),
+              subtitle: Text(
+                'Price: ${_filteredSpareParts[index]['spare_part_price']} | Quantity: ${_filteredSpareParts[index]['spare_part_quantity']}',
+                style: TextStyle(color: Colors.white),
+              ),
             );
           },
         ),
@@ -848,6 +1038,7 @@ class _BySparePartPageState extends State<BySparePartPage> {
         color: Colors.grey[800],
         child: FutureBuilder<List<Map<String, dynamic>>>(
           future: fetchFullSparePartTable(),
+
           builder: (context, snapshot) {
             if (!snapshot.hasData) {
               return Center(child: CircularProgressIndicator());
@@ -864,34 +1055,46 @@ class _BySparePartPageState extends State<BySparePartPage> {
             return ListView.builder(
               itemCount: filteredSpareParts.length,
               itemBuilder: (context, index) {
-                return ListTile(
-                  title: Text(
-                    filteredSpareParts[index]['spare_part_name'],
-                    style: TextStyle(color: Colors.red[500]),
+                return Container(
+                  // Set the background color to black
+                  // color: Colors.black,
+                  decoration: BoxDecoration(
+                    // Add bottom border with grey[800] color
+                    color: Colors.black26,
+                    border: Border(
+
+                      bottom: BorderSide(color: Colors.grey[800]!, width: 1),
+                    ),
                   ),
-                  subtitle: Text(
-                    'Rs.${filteredSpareParts[index]['spare_part_price']}  |  '
-                        'Q: ${filteredSpareParts[index]['spare_part_quantity']}  |  '
-                        'B: ${filteredSpareParts[index]['bike_name']}',
-                    style: TextStyle(color: Colors.white),
-                  ),
-                  trailing: Row(
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      IconButton(
-                        icon: Icon(Icons.edit, color: Colors.blue),
-                        onPressed: () {
-                          showEditForm(context, filteredSpareParts[index]);
-                        },
-                      ),
-                      IconButton(
-                        icon: Icon(Icons.delete, color: Colors.red),
-                        onPressed: () {
-                          showDeleteConfirmation(
-                              context, filteredSpareParts[index]['spare_part_id']);
-                        },
-                      ),
-                    ],
+                  child: ListTile(
+                    title: Text(
+                      filteredSpareParts[index]['spare_part_name'],
+                      style: TextStyle(color: Colors.red[500], fontSize: 22),
+                    ),
+                    subtitle: Text(
+                      'Rs.${filteredSpareParts[index]['spare_part_price']}  |  '
+                          'Q: ${filteredSpareParts[index]['spare_part_quantity']}  |  '
+                          'B: ${filteredSpareParts[index]['bike_name']}',
+                      style: TextStyle(color: Colors.white, fontSize: 18),
+                    ),
+                    trailing: Row(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        IconButton(
+                          icon: Icon(Icons.edit, color: Colors.blue),
+                          onPressed: () {
+                            showEditForm(context, filteredSpareParts[index]);
+                          },
+                        ),
+                        IconButton(
+                          icon: Icon(Icons.delete, color: Colors.red),
+                          onPressed: () {
+                            showDeleteConfirmation(
+                                context, filteredSpareParts[index]['spare_part_id']);
+                          },
+                        ),
+                      ],
+                    ),
                   ),
                 );
               },

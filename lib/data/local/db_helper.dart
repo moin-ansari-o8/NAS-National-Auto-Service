@@ -31,11 +31,13 @@ class DatabaseHelper {
     );
   }
 
+  // Get all bikes from the 'bike_details' table
   Future<List<Map<String, dynamic>>> getBikes() async {
     final db = await database;
     return await db.query('bike_details');
   }
 
+  // Add a new bike to the 'bike_details' table
   Future<void> addBike(String bikeName) async {
     final db = await database;
     await db.insert(
@@ -44,12 +46,32 @@ class DatabaseHelper {
       conflictAlgorithm: ConflictAlgorithm.replace,
     );
   }
-  Future<List<Map<String, dynamic>>> getSparePartsByBikeId(int bikeId) async {
-    final database = await openDatabase(
-      join(await getDatabasesPath(), 'garage_inventory.db'),
-    );
 
-    return await database.query(
+  // Update the bike name in the 'bike_details' table
+  Future<void> updateBike(int bikeId, String newBikeName) async {
+    final db = await database;
+    await db.update(
+      'bike_details',
+      {'bike_name': newBikeName},
+      where: 'bike_id = ?',
+      whereArgs: [bikeId],
+    );
+  }
+
+  // Delete a bike from the 'bike_details' table
+  Future<void> deleteBike(int bikeId) async {
+    final db = await database;
+    await db.delete(
+      'bike_details',
+      where: 'bike_id = ?',
+      whereArgs: [bikeId],
+    );
+  }
+
+  // Get all spare parts associated with a specific bike (by bike_id)
+  Future<List<Map<String, dynamic>>> getSparePartsByBikeId(int bikeId) async {
+    final db = await database;
+    return await db.query(
       'spare_part_details',
       where: 'bike_id = ?',
       whereArgs: [bikeId],
