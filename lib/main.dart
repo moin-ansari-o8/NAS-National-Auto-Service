@@ -20,6 +20,7 @@ class GarageInventoryApp extends StatelessWidget {
         appBarTheme: AppBarTheme(
           backgroundColor: Colors.black,
           foregroundColor: Colors.red[500], // Title color set to red
+          centerTitle: true, // Center title in the AppBar
           titleTextStyle: TextStyle(
             fontFamily: 'Itim',
             fontSize: 28, // Increased font size for AppBar titles
@@ -37,12 +38,14 @@ class GarageInventoryApp extends StatelessWidget {
     );
   }
 }
+
 class HomePage extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
         title: Text('National Auto Service'),
+        centerTitle: true, // Center the title in this AppBar
       ),
       drawer: AppDrawer(),
       body: Container(
@@ -522,25 +525,73 @@ class _ByBikePageState extends State<ByBikePage> {
     showDialog(
       context: this.context,
       builder: (context) {
-        return AlertDialog(
-          title: Text('Add New Bike'),
-          content: TextField(
-            controller: bikeNameController,
-            decoration: InputDecoration(hintText: 'Enter bike name'),
+        return Dialog(
+          backgroundColor: Colors.grey, // Set the background color to grey
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(12), // Rounded corners
           ),
-          actions: [
-            TextButton(
-              onPressed: () async {
-                String bikeName = bikeNameController.text;
-                if (bikeName.isNotEmpty) {
-                  await _dbHelper.addBike(bikeName);
-                  _fetchBikes(); // Refresh the list
-                }
-                Navigator.pop(context); // Close the dialog
-              },
-              child: Text('Done'),
+          child: Padding(
+            padding: const EdgeInsets.all(16.0),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Text(
+                  'Add New Bike',
+                  style: TextStyle(
+                    color: Colors.black,
+                    fontSize: 20,
+                    fontWeight: FontWeight.bold,
+                    fontFamily: 'Itim',
+                  ),
+                ),
+                SizedBox(height: 16),
+                TextField(
+                  controller: bikeNameController,
+                  decoration: InputDecoration(
+                    hintText: 'Enter bike name',
+                    hintStyle: TextStyle(color: Colors.black54),
+                    filled: true,
+                    fillColor: Colors.white,
+                    border: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(8),
+                    ),
+
+                  ),
+                ),
+                SizedBox(height: 16),
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                  children: [
+                    ElevatedButton(
+                      onPressed: () async {
+                        String bikeName = bikeNameController.text;
+                        if (bikeName.isNotEmpty) {
+                          await _dbHelper.addBike(bikeName);
+                          _fetchBikes(); // Refresh the list
+                        }
+                        Navigator.pop(context); // Close the dialog
+                      },
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: Colors.black, // Button background color
+                        foregroundColor: Colors.red[500], // Text color
+                      ),
+                      child: Text('Done'),
+                    ),
+                    ElevatedButton(
+                      onPressed: () {
+                        Navigator.pop(context); // Close the dialog
+                      },
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: Colors.black, // Button background color
+                        foregroundColor: Colors.red[500], // Text color
+                      ),
+                      child: Text('Cancel'),
+                    ),
+                  ],
+                ),
+              ],
             ),
-          ],
+          ),
         );
       },
     );
@@ -554,22 +605,73 @@ class _ByBikePageState extends State<ByBikePage> {
       context: this.context,
       builder: (context) {
         return AlertDialog(
-          title: Text('Edit Bike'),
-          content: TextField(
-            controller: bikeNameController,
-            decoration: InputDecoration(hintText: 'Enter new bike name'),
+          backgroundColor: Colors.grey, // Set the background color to gray
+          title: Center(
+            child: Text(
+              'Edit Bike',
+              style: TextStyle(
+                color: Colors.black,
+                fontWeight: FontWeight.bold, // Make the text bold
+              ),
+            ),
           ),
+          content: Column(
+            mainAxisSize: MainAxisSize.min,
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              Container(
+                decoration: BoxDecoration(
+                  color: Colors.white, // Background color of the box
+                  borderRadius: BorderRadius.circular(5.0), // Rounded corners
+                ),
+                child: TextField(
+                  controller: bikeNameController,
+                  decoration: InputDecoration(
+                    contentPadding: EdgeInsets.symmetric(horizontal: 10, vertical: 5), // Padding inside the box
+                    border: InputBorder.none, // Remove the underline
+                    focusedBorder: InputBorder.none, // Remove underline when focused
+                    enabledBorder: InputBorder.none, // Remove underline when enabled
+                    hintText: 'Enter new bike name',
+                    hintStyle: TextStyle(color: Colors.grey), // Hint text color
+                  ),
+                  style: TextStyle(color: Colors.black45), // Text input color
+                ),
+              ),
+            ],
+          ),
+          actionsAlignment: MainAxisAlignment.center, // Center the actions horizontally
           actions: [
+            // "Cancel" button
             TextButton(
+              style: ButtonStyle(
+                backgroundColor: MaterialStateProperty.all<Color>(Colors.black),
+              ),
+              onPressed: () {
+                Navigator.pop(context); // Close the dialog and return to the page
+              },
+              child: Text(
+                'Cancel',
+                style: TextStyle(color: Colors.red), // Text color
+              ),
+            ),
+            SizedBox(width: 20), // Space between the buttons
+            // "Save" button
+            TextButton(
+              style: ButtonStyle(
+                backgroundColor: MaterialStateProperty.all<Color>(Colors.black),
+              ),
               onPressed: () async {
                 String bikeName = bikeNameController.text;
                 if (bikeName.isNotEmpty) {
-                  await _dbHelper.updateBike(bikeId, bikeName);  // Update the bike in the DB
+                  await _dbHelper.updateBike(bikeId, bikeName); // Update the bike in the DB
                   _fetchBikes(); // Refresh the list
                 }
                 Navigator.pop(context); // Close the dialog
               },
-              child: Text('Save'),
+              child: Text(
+                'Save',
+                style: TextStyle(color: Colors.red), // Text color
+              ),
             ),
           ],
         );
@@ -583,22 +685,59 @@ class _ByBikePageState extends State<ByBikePage> {
       context: this.context,
       builder: (context) {
         return AlertDialog(
-          title: Text('Delete Bike'),
-          content: Text('Are you sure you want to delete this bike?'),
+          backgroundColor: Colors.grey, // Set the background color to gray
+          title: Center(
+            child: Text(
+              'Did you know?',
+              style: TextStyle(
+                color: Colors.black,
+                fontWeight: FontWeight.bold, // Make the title bold
+              ),
+            ),
+          ),
+          content: Column(
+            mainAxisSize: MainAxisSize.min,
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              Text(
+                'Deleting this bike will clear all data related to it\'s\ spareparts too, though u want to delete it?',
+                style: TextStyle(
+                  color: Colors.black,
+                  fontSize: 18,
+                ),
+              ),
+            ],
+          ),
+          actionsAlignment: MainAxisAlignment.center, // Center the actions horizontally
           actions: [
+            // "No" button
             TextButton(
+              style: ButtonStyle(
+                backgroundColor: MaterialStateProperty.all<Color>(Colors.black),
+              ),
+              onPressed: () {
+                Navigator.pop(context); // Close the dialog without doing anything
+              },
+              child: Text(
+                'No',
+                style: TextStyle(color: Colors.red), // Text color
+              ),
+            ),
+            SizedBox(width: 20), // Space between the buttons
+            // "Yes" button
+            TextButton(
+              style: ButtonStyle(
+                backgroundColor: MaterialStateProperty.all<Color>(Colors.black),
+              ),
               onPressed: () async {
                 await _dbHelper.deleteBike(bikeId); // Delete the bike from the DB
                 _fetchBikes(); // Refresh the list
                 Navigator.pop(context); // Close the dialog
               },
-              child: Text('Yes'),
-            ),
-            TextButton(
-              onPressed: () {
-                Navigator.pop(context); // Close the dialog without doing anything
-              },
-              child: Text('No'),
+              child: Text(
+                'Yes',
+                style: TextStyle(color: Colors.red), // Text color
+              ),
             ),
           ],
         );
@@ -611,14 +750,19 @@ class _ByBikePageState extends State<ByBikePage> {
     return Scaffold(
       appBar: AppBar(
         title: _isSearching
-            ? TextField(
-          controller: _searchController,
-          decoration: InputDecoration(
-            hintText: 'Search Bikes',
-            hintStyle: TextStyle(color: Colors.red[500]),
-            border: InputBorder.none,
+            ? Center(
+          child: TextField(
+            controller: _searchController,
+            decoration: InputDecoration(
+              hintText: 'Enter bike name',
+              hintStyle: TextStyle(color: Colors.red[300]),
+              border: InputBorder.none,
+              focusedBorder: UnderlineInputBorder(
+                borderSide: BorderSide(color: Colors.red),
+              ),
+            ),
+            style: TextStyle(color: Colors.red[300]),
           ),
-          style: TextStyle(color: Colors.red[500]),
         )
             : Text('Bike List', style: TextStyle(fontFamily: 'Itim')),
         actions: [
@@ -641,8 +785,31 @@ class _ByBikePageState extends State<ByBikePage> {
       body: Container(
         color: Colors.grey[800],
         child: _filteredBikes.isEmpty
-            ? Center(child: CircularProgressIndicator())
-            : ListView.builder(
+        ?Center(
+      child: Column(
+      mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          Text(
+            "Add First Bike",
+            style: TextStyle(
+              color: Colors.red,
+              fontSize: 20,
+              fontWeight: FontWeight.bold,
+            ),
+          ),
+          SizedBox(height: 8), // Adds some spacing between the lines
+          Text(
+            'click on \'+\' btn hehe..',
+            style: TextStyle(
+              color: Colors.white,
+              fontSize: 16,
+            ),
+          ),
+        ],
+      ),
+    )
+
+    : ListView.builder(
           itemCount: _filteredBikes.length,
           itemBuilder: (context, index) {
             return Container(
@@ -819,11 +986,9 @@ class _BySparePartPageState extends State<BySparePartPage> {
   String searchQuery = '';
   bool isSearching = false;
   TextEditingController searchController = TextEditingController();
-// Controllers for the edit form
   TextEditingController priceController = TextEditingController();
   TextEditingController quantityController = TextEditingController();
 
-  // Fetch the full spare part details with bike name
   Future<List<Map<String, dynamic>>> fetchFullSparePartTable() async {
     final database = await openDatabase(
       join(await getDatabasesPath(), 'garage_inventory.db'),
@@ -841,12 +1006,13 @@ class _BySparePartPageState extends State<BySparePartPage> {
 
     return maps;
   }
-// Function to update spare part in the database
-  Future<void> updateSparePart(int sparePartId, double newPrice, int newQuantity) async {
+
+  Future<void> updateSparePart(int sparePartId, double newPrice, int newQuantity, String sparePartName) async {
     final database = await openDatabase(
       join(await getDatabasesPath(), 'garage_inventory.db'),
     );
 
+    // Update the spare part in the database
     await database.update(
       'spare_part_details',
       {
@@ -857,18 +1023,19 @@ class _BySparePartPageState extends State<BySparePartPage> {
       whereArgs: [sparePartId],
     );
 
+    // Show a personalized success message in the SnackBar
     ScaffoldMessenger.of(this.context).showSnackBar(
-      SnackBar(content: Text('Spare part updated successfully!')),
+      SnackBar(content: Text('$sparePartName updated successfully!')),
     );
 
     setState(() {}); // Refresh the list
   }
+
   Future<void> deleteSparePart(BuildContext context, int sparePartId) async {
     final database = await openDatabase(
       join(await getDatabasesPath(), 'garage_inventory.db'),
     );
 
-    // Fetch the spare part name before deleting
     final List<Map<String, dynamic>> result = await database.query(
       'spare_part_details',
       columns: ['spare_part_name'],
@@ -876,10 +1043,8 @@ class _BySparePartPageState extends State<BySparePartPage> {
       whereArgs: [sparePartId],
     );
 
-    // Check if the spare part exists and get its name
     String sparePartName = result.isNotEmpty ? result[0]['spare_part_name'] : 'Spare part';
 
-    // Proceed to delete the spare part
     await database.delete(
       'spare_part_details',
       where: 'spare_part_id = ?',
@@ -893,7 +1058,6 @@ class _BySparePartPageState extends State<BySparePartPage> {
     setState(() {}); // Refresh the UI
   }
 
-// Function to show the edit form
   void showEditForm(BuildContext context, Map<String, dynamic> sparePart) {
     priceController.text = sparePart['spare_part_price'].toString();
     quantityController.text = sparePart['spare_part_quantity'].toString();
@@ -902,39 +1066,94 @@ class _BySparePartPageState extends State<BySparePartPage> {
       context: context,
       builder: (context) {
         return AlertDialog(
-          title: Text('Edit Spare Part'),
+          backgroundColor: Colors.grey, // Set the background color to gray
+          title: Center(
+            child: Text(
+              'Edit Spare Part',
+              style: TextStyle(
+                color: Colors.black,
+                fontWeight: FontWeight.bold, // Make the title bold
+              ),
+            ),
+          ),
           content: Column(
             mainAxisSize: MainAxisSize.min,
             children: [
-              TextField(
-                controller: priceController,
-                keyboardType: TextInputType.number,
-                decoration: InputDecoration(labelText: 'Price'),
+              // Price Field
+              Container(
+                decoration: BoxDecoration(
+                  color: Colors.white, // Background color of the box
+                  borderRadius: BorderRadius.circular(5.0), // Rounded corners
+                ),
+                child: TextField(
+                  controller: priceController,
+                  keyboardType: TextInputType.number,
+                  decoration: InputDecoration(
+                    contentPadding: EdgeInsets.symmetric(horizontal: 10, vertical: 5), // Padding inside the box
+                    border: InputBorder.none, // Remove the underline
+                    focusedBorder: InputBorder.none, // Remove underline when focused
+                    enabledBorder: InputBorder.none, // Remove underline when enabled
+                    hintText: 'Enter price',
+                    hintStyle: TextStyle(color: Colors.grey), // Hint text color
+                  ),
+                  style: TextStyle(color: Colors.black45), // Text input color
+                ),
               ),
-              TextField(
-                controller: quantityController,
-                keyboardType: TextInputType.number,
-                decoration: InputDecoration(labelText: 'Quantity'),
+              SizedBox(height: 20), // Adds some space between the fields
+              // Quantity Field
+              Container(
+                decoration: BoxDecoration(
+                  color: Colors.white, // Background color of the box
+                  borderRadius: BorderRadius.circular(5.0), // Rounded corners
+                ),
+                child: TextField(
+                  controller: quantityController,
+                  keyboardType: TextInputType.number,
+                  decoration: InputDecoration(
+                    contentPadding: EdgeInsets.symmetric(horizontal: 10, vertical: 5), // Padding inside the box
+                    border: InputBorder.none, // Remove the underline
+                    focusedBorder: InputBorder.none, // Remove underline when focused
+                    enabledBorder: InputBorder.none, // Remove underline when enabled
+                    hintText: 'Enter quantity',
+                    hintStyle: TextStyle(color: Colors.grey), // Hint text color
+                  ),
+                  style: TextStyle(color: Colors.black45), // Text input color
+                ),
               ),
             ],
           ),
+          actionsAlignment: MainAxisAlignment.center, // Center the actions horizontally
           actions: [
+            // "Reset" button
             TextButton(
+              style: ButtonStyle(
+                backgroundColor: MaterialStateProperty.all<Color>(Colors.black),
+              ),
               onPressed: () {
-                // Reset the values to the original ones
                 priceController.text = sparePart['spare_part_price'].toString();
                 quantityController.text = sparePart['spare_part_quantity'].toString();
               },
-              child: Text('Reset'),
+              child: Text(
+                'Reset',
+                style: TextStyle(color: Colors.red), // Text color
+              ),
             ),
+            SizedBox(width: 20), // Space between the buttons
+            // "Update" button
             TextButton(
+              style: ButtonStyle(
+                backgroundColor: MaterialStateProperty.all<Color>(Colors.black),
+              ),
               onPressed: () {
                 double newPrice = double.tryParse(priceController.text) ?? 0.0;
                 int newQuantity = int.tryParse(quantityController.text) ?? 0;
-                updateSparePart(sparePart['spare_part_id'], newPrice, newQuantity);
+                updateSparePart(sparePart['spare_part_id'], newPrice, newQuantity, sparePart['spare_part_name']);
                 Navigator.of(context).pop(); // Close the dialog
               },
-              child: Text('Update'),
+              child: Text(
+                'Update',
+                style: TextStyle(color: Colors.red), // Text color
+              ),
             ),
           ],
         );
@@ -947,19 +1166,63 @@ class _BySparePartPageState extends State<BySparePartPage> {
       context: context,
       builder: (context) {
         return AlertDialog(
-          title: Text('Confirm Delete'),
-          content: Text('Are you sure you want to delete this spare part?'),
-          actions: [
-            TextButton(
-              onPressed: () {
-                deleteSparePart(context, sparePartId);
-                Navigator.of(context).pop();
-              },
-              child: Text('Delete'),
+          backgroundColor: Colors.grey, // Background color of the dialog
+          title: Center(
+            child: Text(
+              'Confirm Delete',
+              style: TextStyle(
+                color: Colors.black,
+                fontWeight: FontWeight.bold,
+                 // Adjust title size and make it bold
+              ),
             ),
-            TextButton(
-              onPressed: () => Navigator.of(context).pop(),
-              child: Text('Cancel'),
+          ),
+          content: Column(
+            mainAxisSize: MainAxisSize.min,
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              Text(
+                'Are you sure you want to delete this sparepart?',
+                style: TextStyle(
+                  color: Colors.black,
+                  fontSize: 18,
+                ),
+              ),
+            ],
+          ),
+          actionsAlignment: MainAxisAlignment.center, // Center the actions horizontally
+          actions: [
+            // Cancel button
+            Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 10), // Spacing between buttons
+              child: TextButton(
+                style: ButtonStyle(
+                  backgroundColor: MaterialStateProperty.all<Color>(Colors.black),
+                ),
+                onPressed: () => Navigator.of(context).pop(), // Close the dialog
+                child: Text(
+                  'No',
+                  style: TextStyle(color: Colors.red), // Text color for Cancel button
+                ),
+              ),
+            ),
+            SizedBox(width: 20), // Space between the buttons
+            // Delete button
+            Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 10), // Spacing between buttons
+              child: TextButton(
+                style: ButtonStyle(
+                  backgroundColor: MaterialStateProperty.all<Color>(Colors.black),
+                ),
+                onPressed: () {
+                  deleteSparePart(context, sparePartId);
+                  Navigator.of(context).pop(); // Close the dialog
+                },
+                child: Text(
+                  'Yes',
+                  style: TextStyle(color: Colors.red), // Text color for Delete button
+                ),
+              ),
             ),
           ],
         );
@@ -999,10 +1262,10 @@ class _BySparePartPageState extends State<BySparePartPage> {
             ? TextField(
           controller: searchController,
           cursorColor: Colors.red,
-          style: TextStyle(color: Colors.red),
+          style: TextStyle(color: Colors.red[300]),
           decoration: InputDecoration(
-            hintText: 'Search Spare Parts',
-            hintStyle: TextStyle(color: Colors.red),
+            hintText: 'Enter Sparepart name',
+            hintStyle: TextStyle(color: Colors.red[300]),
             border: InputBorder.none,
             focusedBorder: UnderlineInputBorder(
               borderSide: BorderSide(color: Colors.red),
@@ -1038,13 +1301,38 @@ class _BySparePartPageState extends State<BySparePartPage> {
         color: Colors.grey[800],
         child: FutureBuilder<List<Map<String, dynamic>>>(
           future: fetchFullSparePartTable(),
-
           builder: (context, snapshot) {
             if (!snapshot.hasData) {
               return Center(child: CircularProgressIndicator());
             }
 
             final spareParts = snapshot.data!;
+            if (spareParts.isEmpty) {
+              return Center(
+                child: Column(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    Text(
+                      'Add New Sparepart',
+                      style: TextStyle(
+                        color: Colors.red,
+                        fontSize: 24,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                    SizedBox(height: 8), // Adds some spacing between the lines
+                    Text(
+                      'Click on \'+\' button to add a new sparepart.',
+                      style: TextStyle(color: Colors.white, fontSize: 16),
+                    ),
+                    SizedBox(height: 20), // Adds some spacing before the button
+
+                  ],
+                ),
+              );
+            }
+
+
             final filteredSpareParts = spareParts
                 .where((sparePart) => sparePart['spare_part_name']
                 .toString()
@@ -1056,13 +1344,9 @@ class _BySparePartPageState extends State<BySparePartPage> {
               itemCount: filteredSpareParts.length,
               itemBuilder: (context, index) {
                 return Container(
-                  // Set the background color to black
-                  // color: Colors.black,
                   decoration: BoxDecoration(
-                    // Add bottom border with grey[800] color
                     color: Colors.black26,
                     border: Border(
-
                       bottom: BorderSide(color: Colors.grey[800]!, width: 1),
                     ),
                   ),
